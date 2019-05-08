@@ -1,0 +1,139 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.StdDraw;
+import edu.princeton.cs.algs4.StdOut;
+
+public class FastCollinearPoints {
+	
+	private Point[] points;
+	private ArrayList<LineSegment> result;
+	
+	public FastCollinearPoints(Point[] points){
+		if(points == null){
+			throw new java.lang.IllegalArgumentException();
+		}
+		for(Point temp : points){
+			if (temp == null){
+				throw new java.lang.IllegalArgumentException();
+			}
+		}
+		for(int i=0;i<points.length;i++){
+			for(int j=0; j<points.length;j++){
+				if(j!=i){
+					if(points[j].compareTo(points[i])==0){
+						throw new java.lang.IllegalArgumentException();
+					}
+				}
+			}
+		}
+		this.points = points;
+		result = new ArrayList<LineSegment>();
+	   
+	}
+      
+	// the number of line segments
+	public int numberOfSegments(){
+		segments();
+		return result.size();
+	}
+   
+	// the line segments
+	public LineSegment[] segments(){		
+		Point[] temp = new Point[points.length];
+		ArrayList<Point[]> singleresults = new ArrayList<Point[]>();;
+		for(int i=0;i<points.length;i++){
+			int tempindex = 0;
+			//Think of the first point in temp[] as the origin
+			temp[tempindex++] = points[i]; 
+			// put the rest points into temp[]
+			for(int j=0;j<points.length;j++){
+				if(j!=i){
+					temp[tempindex++] = points[j];
+				}
+			}
+			Arrays.sort(temp,1,points.length,temp[0].slopeOrder());			
+			ArrayList<Integer> numberofCollinearPoints_arrayList =  new ArrayList<Integer>();
+			ArrayList<Integer> starterindex_arrayList = new ArrayList<Integer>();
+			int numberofCollinearPoints = 2;
+			int starterindex = 1;
+			for(int k=1;k<points.length;k++){
+				if(temp[k].slopeTo(temp[0])!=temp[k-1].slopeTo(temp[0])){
+					if(numberofCollinearPoints>=4){
+						numberofCollinearPoints_arrayList.add(numberofCollinearPoints);
+						starterindex_arrayList.add(starterindex);
+					}
+					numberofCollinearPoints = 2;
+					starterindex = k;
+				}
+				else{
+					numberofCollinearPoints++;
+					if(k==points.length-1 && numberofCollinearPoints>=4){
+						numberofCollinearPoints_arrayList.add(numberofCollinearPoints);
+						starterindex_arrayList.add(starterindex);
+					}
+				}
+			}			
+			for(int m=0;m<numberofCollinearPoints_arrayList.size();m++){
+				Point[] singleresult = new Point[numberofCollinearPoints_arrayList.get(m)];
+				singleresult[0] = temp[0];
+				for(int n=1;n<singleresult.length;n++){
+					singleresult[n] = temp[starterindex_arrayList.get(m)+n-1];	
+				}
+				Arrays.sort(singleresult);
+				singleresults.add(singleresult);
+			}		
+		}
+		for(int p=0;p<singleresults.size();p++){
+			for(int q=0;q<singleresults.size();q++){
+				if(q!=p){
+					if(singleresults.get(p)!=null && singleresults.get(q)!=null){
+						if(singleresults.get(q)[0] == singleresults.get(p)[0] && singleresults.get(q)[singleresults.get(q).length-1] == singleresults.get(p)[singleresults.get(p).length-1]){
+							singleresults.set(q, null);
+						}
+					}	
+				}
+			}
+		}
+		for(int i=0;i<singleresults.size();i++){
+			if(singleresults.get(i) != null){
+				result.add(new LineSegment(singleresults.get(i)[0],singleresults.get(i)[singleresults.get(i).length-1]));
+			}
+		}
+
+		LineSegment[] tempresult = new LineSegment[result.size()];
+		return result.toArray(tempresult);
+	}
+	
+	public static void main(String[] args) {
+
+	    // read the n points from a file
+	    In in = new In(args[0]);
+	    int n = in.readInt();
+	    Point[] points = new Point[n];
+	    for (int i = 0; i < n; i++) {
+	        int x = in.readInt();
+	        int y = in.readInt();
+	        points[i] = new Point(x, y);
+	    }
+
+	    // draw the points
+	    StdDraw.enableDoubleBuffering();
+	    StdDraw.setXscale(0, 32768);
+	    StdDraw.setYscale(0, 32768);
+	    for (Point p : points) {
+	        p.draw();
+	    }
+	    StdDraw.show();
+
+	    // print and draw the line segments
+	    FastCollinearPoints collinear = new FastCollinearPoints(points);
+	    for (LineSegment segment : collinear.segments()) {
+	        StdOut.println(segment);
+	        segment.draw();
+	    }
+	    StdDraw.show();
+
+	}
+}

@@ -1,0 +1,139 @@
+import edu.princeton.cs.algs4.StdRandom;
+import edu.princeton.cs.algs4.StdStats;
+import edu.princeton.cs.algs4.WeightedQuickUnionUF;
+
+public class Percolation {
+	
+
+	private int size;
+	private int[][] grid;
+	private int numberOfOpenSites;
+	private WeightedQuickUnionUF uf_percolates, uf_isFull;
+	
+	// uniquely mapping 2D coordinates to 1D coordinates
+	private int xyTo1D(int x, int y){
+		return (x-1)*size+(y-1);
+	}
+	
+	//validating indices
+	private boolean isIndicesValid(int x, int y){		
+		if (x > 0 && y > 0 && x <= size && y <= size){
+			return true;
+		}
+		else{
+			return false;
+		}	
+	}
+	
+	//initialize the grid
+	private void initialize(){
+		for(int i=1;i<=size;i++){
+			for(int j=1;j<=size;j++){
+				grid[i][j] = 0;   //'0' signifies blocked site
+			}
+		}
+	}
+		
+	// create n-by-n grid, with all sites blocked
+	public Percolation(int n){
+		if(isIndicesValid(n,n)){
+			size = n;
+			numberOfOpenSites = 0;
+			grid = new int[n+1][n+1];
+			initialize();
+			
+			uf_percolates = new WeightedQuickUnionUF(size*size+2); //extra virtual bottom and virtual top
+			for(int i=0;i<size;i++){
+				uf_percolates.union(i, size*size);   //connect top line with the virtual top 
+				uf_percolates.union(size*size-1-i, size*size+1); //connect bottom line with the virtual bottom 
+			}
+			
+			uf_isFull = new WeightedQuickUnionUF(size*size+1);  //extra virtual top
+			for(int i=0;i<size;i++){
+				uf_isFull.union(i, size*size);   //connect top line with the virtual top 	
+			}
+		}
+		else{
+			throw new IndexOutOfBoundsException("n must be > 0");
+		}
+		
+	}
+	
+	// open site (row, col) if it is not open already
+	public void open(int row, int col){
+		if (isIndicesValid(row,col)){
+			if(!isOpen(row,col)){
+				grid[row][col] = 1;   //'1' signifies open site
+				numberOfOpenSites++;
+				if(isIndicesValid(row-1,col)){
+					if(isOpen(row-1,col)){
+						uf_percolates.union(xyTo1D(row, col), xyTo1D(row-1,col));
+						uf_isFull.union(xyTo1D(row, col), xyTo1D(row-1,col));
+					}
+				}
+				if(isIndicesValid(row+1,col)){
+					if(isOpen(row+1,col)){
+						uf_percolates.union(xyTo1D(row, col), xyTo1D(row+1,col));
+						uf_isFull.union(xyTo1D(row, col), xyTo1D(row+1,col));
+					}
+				}
+				if(isIndicesValid(row,col-1)){
+					if(isOpen(row,col-1)){
+						uf_percolates.union(xyTo1D(row, col), xyTo1D(row,col-1));
+						uf_isFull.union(xyTo1D(row, col), xyTo1D(row,col-1));
+					}
+				}
+				if(isIndicesValid(row,col+1)){
+					if(isOpen(row,col+1)){
+						uf_percolates.union(xyTo1D(row, col), xyTo1D(row,col+1));
+						uf_isFull.union(xyTo1D(row, col), xyTo1D(row,col+1));
+					}
+				}
+			}	
+		}
+		else{
+			throw new IndexOutOfBoundsException("row index i out of bounds");
+		}
+	}
+	
+	// is site (row, col) open?
+	public boolean isOpen(int row, int col){
+		if(isIndicesValid(row,col)){
+			return grid[row][col]==1;
+		}
+		else{
+			throw new IndexOutOfBoundsException("row index i out of bounds");
+		}
+		
+	}
+	
+	// is site (row, col) full?
+	public boolean isFull(int row, int col){
+		if(isOpen(row,col)){
+			return uf_isFull.connected(xyTo1D(row,col), size*size);	
+		}
+		else{
+			return false;
+		}
+	}
+	
+	// number of open sites
+	public int numberOfOpenSites(){
+		return numberOfOpenSites;
+	}
+	
+	// does the system percolate?
+	public boolean percolates(){
+		if(size == 1){
+			if(isOpen(1,1)){
+				return true;
+			}
+			else{
+			    return false;
+			}
+		}
+		return uf_percolates.connected(size*size, size*size+1);
+	}
+
+
+}

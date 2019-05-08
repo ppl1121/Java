@@ -1,0 +1,82 @@
+import edu.princeton.cs.algs4.MinPQ;
+import edu.princeton.cs.algs4.Stack;
+
+public class Solver {
+	private boolean solvable = false;
+	private int moves = -1;
+	private MinPQ<SearchNode> pq = new MinPQ<SearchNode>();
+	private Stack<Board> stack = new Stack<Board>();
+	
+	private class SearchNode implements Comparable<SearchNode> {
+		private final Board board;
+		private final int moves;
+		private final SearchNode previous;
+		private final int manhattan;
+		private final boolean istwin;
+		
+		SearchNode(Board board, int moves, SearchNode previous, boolean istwin){
+			this.board = board;
+			this.moves = moves;
+			this.previous = previous;
+			this.istwin = istwin;
+			this.manhattan = this.board.manhattan() + this.moves;
+		}
+
+		public int compareTo(SearchNode that) {
+			if(this.manhattan == that.manhattan) return 0;
+			if(this.manhattan > that.manhattan) return 1;
+			return -1;
+		}		
+	}
+	
+	// find a solution to the initial board (using the A* algorithm)
+	Solver(Board initial){
+		if(initial==null) throw new  java.lang.IllegalArgumentException();
+		SearchNode inital_SearchNode = new SearchNode(initial,0,null,false);
+		SearchNode inital_SearchNodeTwin = new SearchNode(initial.twin(),0,null,true);
+		pq.insert(inital_SearchNode);
+		pq.insert(inital_SearchNodeTwin);
+		while(true){
+			SearchNode out = pq.delMin();
+			if(out.board.isGoal()){
+				if(out.istwin){
+					solvable = false;
+					moves = -1;
+				}
+				else{
+					solvable = true;
+					moves = out.moves;
+					while(out!=null){
+						stack.push(out.board);
+						out = out.previous;
+					}
+				}	
+			}
+		}
+		
+	}
+	
+	// is the initial board solvable?
+	public boolean isSolvable(){
+		return solvable;
+	}
+	
+	// min number of moves to solve initial board; -1 if unsolvable
+    public int moves(){
+    	return moves;
+    }
+    
+    // sequence of boards in a shortest solution; null if unsolvable
+    public Iterable<Board> solution(){
+    	if(solvable) return stack;
+    	else return null;
+    	
+    }
+    
+    // solve a slider puzzle (given below)
+    public static void main(String[] args){
+    	
+    }
+	
+
+}

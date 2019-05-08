@@ -1,0 +1,94 @@
+import java.util.Iterator;
+import edu.princeton.cs.algs4.StdRandom;
+
+public class RandomizedQueue<Item> implements Iterable<Item> {
+   
+	// array of RandomizedQueue
+	private Item[] s; 
+	
+	// size of RandomizedQueue
+	private int n;
+	
+	// head and tail of RandomizedQueue
+	int head, tail;
+		
+	
+	// resize the underlying array holding the elements
+    private void resize(int capacity) {
+        Item[] temp = (Item[]) new Object[capacity];
+        for (int i = head; i < tail; i++) {
+            temp[i] = s[i];
+        }
+        s = temp;
+        //reset head and tail after resizing
+        head = 0;
+        tail = n;
+        
+    }
+	
+	// construct an empty randomized queue
+	public RandomizedQueue(){
+		s= (Item[]) new Object[2];
+		n = 0;
+		head = 0;
+		tail = 0;
+	}
+	
+	// is the queue empty?
+	public boolean isEmpty(){
+		return n==0;
+	}
+	
+	// return the number of items on the queue
+	public int size() {
+		return n;
+	}
+	
+	// add the item
+	public void enqueue(Item item){
+		if(item == null){
+			   throw new java.lang.NullPointerException();
+		   }
+		if (n == s.length){
+			// double size of array if necessary
+			resize(2*s.length);    
+		}
+		s[tail++] = item;
+		n++;	
+	}
+	
+	// remove and return a random item
+	public Item dequeue(){
+		if(isEmpty()){
+			   throw new java.util.NoSuchElementException();
+		   }
+		int  pseudo_random = StdRandom.uniform(head, tail);
+		
+		//swap s[pseudo_random] with s[head]
+		Item temp = s[pseudo_random];
+		s[pseudo_random] = s[head];
+		s[head] = temp;
+		// solve the loitering problem
+		s[head++] = null;
+		n--;
+		// shrink size of array if necessary
+        if (n > 0 && n == s.length/4) resize(s.length/2);
+        return item;
+		
+	}
+	
+	// return (but do not remove) a random item
+	public Item sample(){
+		
+	}
+	
+	// return an independent iterator over items in random order
+	public Iterator<Item> iterator(){
+		
+	}
+	
+	// unit testing (optional)
+	public static void main(String[] args){
+		
+	}
+}

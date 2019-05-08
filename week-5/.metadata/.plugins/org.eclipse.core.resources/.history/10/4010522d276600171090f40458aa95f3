@@ -1,0 +1,285 @@
+import java.util.ArrayList;
+
+import edu.princeton.cs.algs4.Point2D;
+import edu.princeton.cs.algs4.RectHV;
+import edu.princeton.cs.algs4.StdDraw;
+
+public class KdTree {
+	
+	private Node root;
+	private int size;
+
+	
+	class Nearest{
+		private Point2D nearest_point;
+		private double nearest_distance;
+		
+		public Nearest(){
+			
+		}
+	}
+	
+	private static class Node {
+		private final Point2D p;      // the point
+		private RectHV rect;    // the axis-aligned rectangle corresponding to this node
+		private RectHV splitting_line; // the splitting line corresponding to this node
+		private Node lb;        // the left/bottom subtree
+		private Node rt;        // the right/top subtree
+		
+		public Node(Point2D p, RectHV rect, RectHV splitting_line){
+			this.p = p ;
+			this.rect = rect;
+			this.splitting_line = splitting_line;
+		   }
+		}
+		
+	// construct an empty set of points 
+	public KdTree(){
+		
+	}
+	
+    // is the set empty? 
+	public boolean isEmpty(){
+		return root == null;
+	}
+	
+	// number of points in the set 
+	public int size(){
+		return size;
+	}
+	
+	// add the point to the set (if it is not already in the set)
+	public void insert(Point2D p){
+		if(p==null) throw new java.lang.IllegalArgumentException();
+		root = insert(root,p,0);
+	}
+	
+	private Node insert(Node x, Point2D p, int level){
+		if (x == null) {
+			if(level==0){
+				Node temp = new Node(p,null,null);
+				temp.rect = new RectHV(0,0,1,1);
+				temp.splitting_line = new RectHV(p.x(),0,p.x(),1);
+				size++;
+				return temp;
+			}
+			else{
+				size++;
+				return new Node(p,null,null);
+			}	
+		}
+		if(p.equals(x.p)) return x;
+		if(level%2==0){
+			if(p.x()<x.p.x()){
+				Node temp = insert(x.lb,p,level+1);
+				if(x.lb!=temp){
+					temp.rect = new RectHV(x.rect.xmin(),x.rect.ymin(),x.p.x(),x.rect.ymax());
+					temp.splitting_line = new RectHV(temp.rect.xmin(),p.y(),temp.rect.xmax(),p.y());
+				}
+				x.lb = temp;
+			}
+			else{
+				Node temp = insert(x.rt,p,level+1);
+				if(x.rt!=temp){
+					temp.rect = new RectHV(x.p.x(),x.rect.ymin(),x.rect.xmax(),x.rect.ymax());
+					temp.splitting_line = new RectHV(temp.rect.xmin(),p.y(),temp.rect.xmax(),p.y());
+				}
+				x.rt  = temp;
+			}
+		}
+		else{
+			if(p.y()<x.p.y()){
+				Node temp = insert(x.lb,p,level+1);
+				if(x.lb!=temp){		
+					temp.rect = new RectHV(x.rect.xmin(),x.rect.ymin(),x.rect.xmax(),x.p.y());
+					temp.splitting_line = new RectHV(p.x(),temp.rect.ymin(),p.x(),temp.rect.ymax());
+				}
+				x.lb = temp;
+			}
+			else{	
+				Node temp = insert(x.rt,p,level+1);
+				if(x.rt!=temp){
+					temp.rect = new RectHV(x.rect.xmin(),x.p.y(),x.rect.xmax(),x.rect.ymax());
+					temp.splitting_line = new RectHV(p.x(),temp.rect.ymin(),p.x(),temp.rect.ymax());
+				}
+				x.rt  = temp;
+				
+			}
+		}
+		return x;
+	}
+	
+	// does the set contain point p? 
+	public boolean contains(Point2D p){
+		if(p==null) throw new java.lang.IllegalArgumentException();
+		return get(root,p,0)!=null;
+		
+	}
+	
+	private Node get(Node x, Point2D p, int level){
+		if(x==null) return null;
+		if(p.equals(x.p)) return x;
+		if(level%2==0){
+			if(p.x()<x.p.x()){
+				return get(x.lb,p,level+1);
+			}
+			else{
+				return get(x.rt,p,level+1);
+			}						
+		}
+		else{
+			if(p.y()<x.p.y()){
+				return get(x.lb,p,level+1);
+			}
+			else{
+				return get(x.rt,p,level+1);
+			}
+		}
+	}
+	
+	// draw all points to standard draw
+	public void draw(){
+		draw(root,0);
+	}
+	
+	private void draw(Node x, int level){
+		if(x!=null){
+			StdDraw.setPenColor(StdDraw.BLACK);
+			StdDraw.setPenRadius(0.01);
+			x.p.draw();
+			if(level%2==0){
+				StdDraw.setPenColor(StdDraw.RED);
+			}
+			else{
+				StdDraw.setPenColor(StdDraw.BLUE);
+			}		
+			StdDraw.setPenRadius();
+			x.splitting_line.draw();
+			draw(x.lb,level+1);
+			draw(x.rt,level+1);
+		}	
+	}
+	
+	// all points that are inside the rectangle
+	public Iterable<Point2D> range(RectHV rect){
+		if(rect==null) throw new java.lang.IllegalArgumentException();
+		ArrayList<Point2D> result = new ArrayList<Point2D>();
+		range(root,rect,result,0);
+		return result;	
+	}
+	
+	private void range(Node x, RectHV rect, ArrayList<Point2D> list, int level){
+		if(x!=null){
+			if(rect.contains(x.p)){
+				list.add(x.p);
+			}
+			if(rect.intersects(x.splitting_line)){
+				range(x.lb,rect,list,level+1);
+				range(x.rt,rect,list,level+1);
+			}
+			else{
+				if(level%2==0){
+					if(x.p.x()>rect.xmax()) range(x.lb,rect,list,level+1);
+					else range(x.rt,rect,list,level+1);
+				}
+				else{
+					if(x.p.y()>rect.ymax()) range(x.lb,rect,list,level+1);
+					else range(x.rt,rect,list,level+1);
+				}
+			}
+		}
+	}
+	
+	// a nearest neighbor in the set to point p; null if the set is empty 
+	public Point2D nearest(Point2D p){
+		if(p==null) throw new java.lang.IllegalArgumentException();
+		Nearest nearest = new Nearest(); 
+		nearest_point = p;
+		nearest_distance = Double.POSITIVE_INFINITY;
+		nearest(root,p,0);
+		return nearest_point;
+	}
+	
+	private void nearest(Node x, Point2D p, int level){
+		if(x!=null){
+//			if(nearest_distance<x.rect.distanceSquaredTo(p)) return;
+			double distance = x.p.distanceSquaredTo(p);
+			if(distance<nearest_distance){
+				nearest_distance = distance;
+				nearest_point = x.p;
+			}
+			if(level%2==0){
+				if(p.x()<x.p.x()){
+					nearest(x.lb,p,level+1);
+					if(x.rt!=null && nearest_distance>x.rt.rect.distanceSquaredTo(p)){
+						nearest(x.rt,p,level+1);
+					}
+				}
+				else{
+					nearest(x.rt,p,level+1);
+					if(x.lb!=null && nearest_distance>x.lb.rect.distanceSquaredTo(p)){
+						nearest(x.lb,p,level+1);
+					}
+				}
+			}
+			else{
+				if(p.y()<x.p.y()){
+					nearest(x.lb,p,level+1);
+					if(x.rt!=null && nearest_distance>x.rt.rect.distanceSquaredTo(p)){
+						nearest(x.rt,p,level+1);
+					}
+				}
+				else{
+					nearest(x.rt,p,level+1);
+					if(x.lb!=null && nearest_distance>x.lb.rect.distanceSquaredTo(p)){
+						nearest(x.lb,p,level+1);
+					}
+				}
+			}
+			
+			
+			
+			
+			
+//			if(level%2==0 && p.x()<x.p.x()){
+//				nearest(x.lb,p,level+1);
+//				if(nearest_distance>(x.p.x()-p.x())){
+//					nearest(x.rt,p,level+1);
+//				}
+//			}
+//			else if(level%2==0 && p.x()>=x.p.x()){
+//				nearest(x.rt,p,level+1);
+//				if(nearest_distance>(p.x()-x.p.x())){
+//					nearest(x.lb,p,level+1);
+//				}
+//			}
+//			else if(level%2!=0 && p.y()<x.p.y()){
+//				nearest(x.lb,p,level+1);
+//				if(nearest_distance>(x.p.y()-p.y())){
+//					nearest(x.rt,p,level+1);
+//				}
+//			}
+//			else{
+//				nearest(x.rt,p,level+1);
+//				if(nearest_distance>(p.y()-x.p.y())){
+//					nearest(x.lb,p,level+1);
+//				}
+//			}
+		}
+	}
+	
+//	// unit testing of the methods (optional)
+//	public static void main(String[] args){
+//		KdTree test = new KdTree();
+//		Point2D p1 = new Point2D(0.3,0.8);
+//		Point2D p2 = new Point2D(0.2,0.5);
+//		Point2D p3 = new Point2D(0.1,0.4);
+//		Point2D p4 = new Point2D(0.8,0.9);
+//		test.insert(p1);
+//		test.insert(p2);
+//		test.insert(p3);
+//		test.insert(p4);
+//		boolean has = test.contains(p4);
+//		System.out.print(test.size());
+//	}
+}

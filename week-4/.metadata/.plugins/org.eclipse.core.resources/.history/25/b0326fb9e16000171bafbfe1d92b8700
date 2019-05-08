@@ -1,0 +1,6 @@
+
+public class search_node {
+	Board board;
+	int number_of_moves;
+	search_node previous;
+}

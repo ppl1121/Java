@@ -1,0 +1,31 @@
+import edu.princeton.cs.algs4.MinPQ;
+
+public class Solver {
+	private boolean solvable = false;
+	private int moves = -1;
+	private  MinPQ<SearchNode> pq = new MinPQ<SearchNode>();
+	
+	private class SearchNode implements Comparable<SearchNode> {
+		private final Board board;
+		private final int moves;
+		private final SearchNode previous;
+		private final int manhattan;
+		private final boolean istwin;
+		
+		SearchNode(Board board, int moves, SearchNode previous, boolean istwin){
+			this.board = board;
+			this.moves = moves;
+			this.previous = previous;
+			this.istwin = istwin;
+			this.manhattan = this.board.manhattan() + this.moves;
+		}
+
+		public int compareTo(SearchNode that) {
+			if(this.manhattan == that.manhattan) return 0;
+			if(this.manhattan > that.manhattan) return 1;
+			return -1;
+		}		
+	}
+	
+
+}

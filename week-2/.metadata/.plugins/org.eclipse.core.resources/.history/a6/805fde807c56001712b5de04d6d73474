@@ -1,0 +1,101 @@
+
+public class Deque<Item> implements Iterable<Item> {
+	
+	// size of Deque
+	private int n;          
+    
+	// head and tail of Deque
+	private Node head, tail;     
+	
+	// helper linked list class
+    private class Node {
+        private Item item;
+        private Node previous;
+        private Node next;
+    }
+	
+   // construct an empty deque
+   public Deque(){
+	   head = null;
+	   tail = null;
+	   n = 0;   
+   }
+   
+   // is the deque empty?
+   public boolean isEmpty(){
+	   return n==0;
+   }
+   
+   // return the number of items on the deque
+   public int size(){
+	   return n;
+   }
+   
+   // add the item to the front
+   public void addFirst(Item item){
+	   if(item == null){
+		   throw new java.lang.NullPointerException();
+	   }
+	   Node oldhead = head;
+	   head = new Node();
+	   head.item = item;
+	   head.next = oldhead;
+	   head.previous = null;
+	   if(isEmpty()){
+		   tail = head;
+	   }
+	   else{
+		   oldhead.previous = head;
+	   }
+	   n++;
+   }
+   
+   // add the item to the end
+   public void addLast(Item item){
+	   if(item == null){
+		   throw new java.lang.NullPointerException();
+	   }
+	   Node oldtail = tail;
+	   tail = new Node();
+	   tail.item = item;
+	   tail.previous = oldtail;
+	   tail.next = null;
+	   if(isEmpty()){
+		   head = tail;
+	   }
+	   else{
+		   oldtail.next = tail;
+	   }
+	   
+   }
+   
+   // remove and return the item from the front
+   public Item removeFirst(){
+	   if(isEmpty()){
+		   throw new java.util.NoSuchElementException();
+	   }
+	   Item item =  head.item;
+	   head = head.next;
+	   if(isEmpty()){
+		   
+	   }
+	   head.previous = null;
+	   
+	   
+   }
+   
+   // remove and return the item from the end
+   public Item removeLast(){
+	   
+   }
+   
+   // return an iterator over items in order from front to end
+   public Iterator<Item> iterator(){
+	   
+   }
+   
+   // unit testing (optional)
+   public static void main(String[] args){
+	   
+   }
+}

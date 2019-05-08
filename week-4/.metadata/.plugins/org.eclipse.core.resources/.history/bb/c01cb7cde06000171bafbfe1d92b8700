@@ -1,0 +1,154 @@
+import edu.princeton.cs.algs4.Stack;
+
+
+public class Board {
+	
+	private final int[][] blocks;
+	private final int dimension;
+	
+	// construct a board from an n-by-n array of blocks
+	// (where blocks[i][j] = block in row i, column j)
+    public Board(int[][] blocks){
+    	this.dimension = blocks.length;
+    	this.blocks = new int[this.dimension][this.dimension];
+    	for(int i=0;i<this.dimension;i++){
+    		for(int j=0;j<this.dimension;j++){
+    			this.blocks[i][j] = blocks[i][j];
+    		}
+    	}
+    }
+         
+    // board dimension n
+    public int dimension() {
+    	return dimension;
+    }
+    
+    // number of blocks out of place
+    public int hamming(){
+    	int hamming_score = 0;
+    	for(int i=0;i<dimension;i++){
+    		for(int j=0;j<dimension && i+j!=2*(dimension-1);j++){
+    			if(blocks[i][j]!=dimension*i+j+1){
+    				hamming_score++;
+    			}
+    		}
+    	}
+    	return hamming_score;
+    }
+    
+    // sum of Manhattan distances between blocks and goal
+    public int manhattan(){
+    	int manhattan_score = 0;
+    	for(int i=0;i<dimension;i++){
+    		for(int j=0;j<dimension;j++){
+    			if(blocks[i][j]!=0){
+    				manhattan_score = manhattan_score + Math.abs((blocks[i][j]-1)/dimension-i)+Math.abs((blocks[i][j]-1)%dimension-j);
+    			}
+    		}
+    	}
+    	return manhattan_score;
+    }
+    
+    // is this board the goal board?
+    public boolean isGoal(){
+    	return hamming()==0;
+    }
+    
+    // a board that is obtained by exchanging any pair of blocks
+    public Board twin(){
+    	int[][] twinblocks = new int[dimension][dimension];
+    	for(int i=0;i<dimension;i++){
+    		for(int j=0;j<dimension;j++){
+    			twinblocks[i][j] = blocks[i][j];
+    		}
+    	}
+    	if(twinblocks[0][0]!=0 && twinblocks[0][1]!=0){
+    		int temp = twinblocks[0][0];
+    		twinblocks[0][0] = twinblocks[0][1];
+    		twinblocks[0][1] = temp;
+    	}
+    	else{
+    		int temp = twinblocks[1][0];
+    		twinblocks[1][0] = twinblocks[1][1];
+    		twinblocks[1][1] = temp;
+    	}
+    	return new Board(twinblocks);   	
+    }
+    
+    // does this board equal y?
+    public boolean equals(Object y){
+    	if (y == this) return true;
+        if (y == null) return false;
+        if (y.getClass() != this.getClass()) return false;
+        Board that = (Board) y;
+        if(that.dimension!=dimension) return false;
+        for(int i=0;i<dimension;i++){
+        	for(int j=0;j<dimension;j++){
+        		if(blocks[i][j]!=that.blocks[i][j]) return false;
+        	}
+        }
+    	return true;
+    }
+    
+    // all neighboring boards
+    public Iterable<Board> neighbors(){
+    	Stack<Board> stack = new Stack<Board>();
+    	int[][] neighborblock = new int[dimension][dimension];
+    	for(int i=0;i<dimension;i++){
+    		for(int j=0;j<dimension;j++){
+    			neighborblock[i][j] = blocks[i][j];
+    		}
+    	}
+    	int index_row = 0;
+    	int index_column = 0;
+    	for(int m=0;m<dimension;m++){
+    		boolean find  = false;
+    		for(int n=0;n<dimension;n++){
+    			if(blocks[m][n]==0){
+    				index_row = m;
+    				index_column = n;
+    				find = true;
+    				break;
+    			}
+    		}
+    		if(find) break;
+    	}
+    	if(index_column-1 >= 0){
+    		neighborblock[index_row][index_column] = neighborblock[index_row][index_column-1];
+    		neighborblock[index_row][index_column-1] = 0;
+    		stack.push(new Board(neighborblock));
+    		neighborblock[index_row][index_column-1] = neighborblock[index_row][index_column];
+    		neighborblock[index_row][index_column] = 0;
+    	}
+    	if(index_column+1 <= dimension-1){
+    		neighborblock[index_row][index_column] = neighborblock[index_row][index_column+1];
+    		neighborblock[index_row][index_column+1] = 0;
+    		stack.push(new Board(neighborblock));
+    		neighborblock[index_row][index_column+1] = neighborblock[index_row][index_column];
+    		neighborblock[index_row][index_column] = 0;
+    	}
+    	if(index_row-1 >= 0){
+    		neighborblock[index_row][index_column] = neighborblock[index_row-1][index_column];
+    		neighborblock[index_row-1][index_column] = 0;
+    		stack.push(new Board(neighborblock));
+    		neighborblock[index_row-1][index_column] = neighborblock[index_row][index_column];
+    		neighborblock[index_row][index_column] = 0;
+    	}
+    	if(index_row+1 <= dimension-1){
+    		neighborblock[index_row][index_column] = neighborblock[index_row+1][index_column];
+    		neighborblock[index_row+1][index_column] = 0;
+    	}
+    	
+    	
+    }
+    
+    // string representation of this board (in the output format specified below)
+    public String toString(){
+    	
+    }
+
+    // unit tests (not graded)
+    public static void main(String[] args){
+    	
+    }
+}
